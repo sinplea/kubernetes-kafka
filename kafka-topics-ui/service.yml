@@ -1,12 +1,13 @@
+---
 kind: Service
 apiVersion: v1
 metadata:
-  name: pixy
+  name: kafka-topics-ui
   namespace: kafka
 spec:
   selector:
-    app: pixy
+    app: kafka-topics-ui
   ports:
   - name: web
     protocol: TCP
-    port: 80
+    port: 8080

@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-topics-ui
+  namespace: kafka
+  labels:
+    app: kafka-topics-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-topics-ui
+  template:
+    metadata:
+      labels:
+        app: kafka-topics-ui
+    spec:
+      containers:
+      - name: kafka-topics-ui
+        image: landoop/kafka-topics-ui:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KAFKA_REST_PROXY_URL
+          value: pixy.kafka.svc.cluster.local:81
+        - name: PROXY
+          value: "TRUE"

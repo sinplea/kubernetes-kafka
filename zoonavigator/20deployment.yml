@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zoonavigator
+  namespace: kafka-tools
+  labels:
+    app: zoonavigator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zoonavigator
+  template:
+    metadata:
+      labels:
+        app: zoonavigator
+    spec:
+      containers:
+      - name: zoonavigator-client
+        image: elkozmon/zoonavigator-web:0.5.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        - name: WEB_HTTP_PORT
+          value: "8000"
+        - name: API_HOST
+          value: zoonavigator.kafka-tools.svc.cluster.local
+        - name: API_PORT
+          value: "9000"
+        - name: AUTO_CONNECT_CONNECTION_STRING
+          value: zookeeper.kafka.svc.cluster.local:2181
+      initContainers:
+      - name: zoonavigator-api
+        image: elkozmon/zoonavigator-api:0.5.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9000
+        env:
+        - name: API_HTTP_PORT
+          value: "9000"

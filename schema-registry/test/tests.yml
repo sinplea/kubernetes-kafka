@@ -1,0 +1,24 @@
+# This will check for subjects in the schema registry
+# If the schema registry was just created it will return []
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: schema-registry-test
+  namespace: kafka
+spec:
+  template:
+    spec:
+      containers:
+      - name: curl
+        image: debian
+        command:
+        - curl
+        - -i
+        - -H
+        - "Accept: application/json"
+        - -X
+        - GET
+        - schema-registry.kafka.svc.cluster.local:5000/subjects
+      restartPolicy: Never
+

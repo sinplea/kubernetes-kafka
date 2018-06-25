@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zoo-nav
+  namespace: kafka-tools
+spec:
+  ports:
+  - port: 8000
+    name: client
+  - port: 9000
+    name: api
+  clusterIP: None
+  selector:
+    app: zoonavigator

@@ -1,0 +1,12 @@
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: z-pdb
+  namespace: kafka
+spec:
+  selector:
+    matchLabels:
+      app: zookeeper
+  maxUnavailable: 1
+---

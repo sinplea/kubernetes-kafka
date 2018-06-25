@@ -1,0 +1,34 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-rest-proxy
+  namespace: kafka
+  labels:
+    app: kafka-rest-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-rest-proxy
+  template:
+    metadata:
+      labels:
+        app: kafka-rest-proxy
+    spec:
+      containers:
+      - name: kafka-rest-proxy
+        image: confluentinc/cp-kafka-rest:4.1.1
+        ports:
+        - containerPort: 5000
+        env:
+        - name: KAFKA_REST_BOOTSTRAP_SERVERS
+          value: bootstrap.kafka.svc.cluster.local:9092
+        - name: KAFKA_REST_ZOOKEEPER_CONNECT
+          value: zookeeper.kafka.svc.cluster.local:2181
+        - name: KAFKA_REST_LISTENERS
+          value: PLAINTEXT://localhost:8082
+        - name: KAFKA_REST_SCHEMA_REGISTRY_URL
+          value: schema-registry.kafka.svc.cluster.local:5000
+        - name: KAFKA_REST_HOME_NAME
+          value: kafka-rest-proxy.kafka.svc.cluster.local

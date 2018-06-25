@@ -20,9 +20,9 @@ spec:
       - name: kafka-topics-ui
         image: landoop/kafka-topics-ui:latest
         ports:
-        - containerPort: 8080
+        - containerPort: 8000
         env:
         - name: KAFKA_REST_PROXY_URL
-          value: pixy.kafka.svc.cluster.local:81
+          value: kafka-rest-proxy:8082
         - name: PROXY
-          value: "TRUE"
+          value: "true"

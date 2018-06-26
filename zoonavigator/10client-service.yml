@@ -3,10 +3,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: zoo-nav
-  namespace: kafka-tools
+  namespace: kafka
 spec:
   ports:
-  - port: 8000
+  - port: 8001
     name: client
   - port: 9000
     name: api

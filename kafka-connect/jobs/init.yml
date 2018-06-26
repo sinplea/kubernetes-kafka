@@ -1,0 +1,18 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-connect-init
+spec:
+  template:
+    metadata:
+      name: kafka-connect-init
+    spec:
+      containers:
+      - name: kafka-connect-init
+        image: dougbtv/jq
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - "curl -s -X POST -H \"Content-Type: application/json\" --data '{\"name\": \"jdbc-source\", \"config\": { \"connector.class\": \"io.confluent.connect.jdbc.JdbcSourceConnector\", \"tasks.max\": 1, \"connection.url\": \"jdbc:postgresql://127.0.0.1:3306/$DATABASE_NAME?user=$DATABASE_USERt&password=$DATABASE_PASSWORD\", \"mode\": \"incrementing+timestamp\", \"incrementing.column.name\": \"id\", \"timestamp.column.name\": \"modified\", \"topic.prefix\": \"postgres-\", \"poll.interval.ms\": 1000 } }}'"
+      restartPolicy: Never

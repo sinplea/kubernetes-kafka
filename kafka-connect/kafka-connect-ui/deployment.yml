@@ -1,0 +1,42 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-connect-ui
+  namespace: kafka
+  labels:
+    app: kafka-connect-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-connect-ui
+  template:
+    metadata:
+      labels:
+        app: kafka-connect-ui
+    spec:
+      containers:
+      - name: kafka-connect-ui
+        image: landoop/kafka-connect-ui:0.9.5
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        - name: CONNECT_URL
+          value: kafka-connect.kafka.svc.cluster.local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-connect-ui
+  namespace: kafka
+  labels:
+    app: kafka-connect-ui
+spec:
+  ports:
+  - port: 8000
+    name: web
+  clusterIP: None
+  selector:
+    app: kafka-connect-ui

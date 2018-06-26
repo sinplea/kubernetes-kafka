@@ -35,7 +35,7 @@ spec:
               name: cloudsql-db-credentials
               key: password
         - name: DATABASE_URL
-          value: postgresql://proxyuser:Password1@127.0.0.1:3306/schema  
+          value: postgresql://proxyuser:Password1@127.0.0.1:3306/schema
         - name: SECRET_KEY_BASE
           value: secret
         - name: SCHEMA_REGISTRY_PASSWORD

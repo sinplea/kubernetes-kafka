@@ -1,0 +1,101 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-connect
+  namespace: kafka
+  labels:
+    app: kafka-connect
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-connect
+  template:
+    metadata:
+      labels:
+        app: kafka-connect
+    spec:
+      containers:
+      - name: kafka-connect
+        image: confluentinc/cp-kafka-connect:4.1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8082
+        volumeMounts:
+        - name: kafka-connect-storage
+          mountPath: /etc/kafka-connect/jars
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c",
+              "curl -O https://jdbc.postgresql.org/download/postgresql-42.2.2.jre6.jar && mv postgresql-42.2.2.jre6.jar /usr/share/java/kafka-connect-jdbc"]
+        env:
+        - name: CONNECT_BOOTSTRAP_SERVERS
+          value: bootstrap:9092
+        - name: CONNECT_REST_PORT
+          value: "8082"
+        - name: CONNECT_GROUP_ID
+          value: "postgres"
+        - name: CONNECT_CONFIG_STORAGE_TOPIC
+          value: "postgres-config"
+        - name: CONNECT_OFFSET_STORAGE_TOPIC
+          value: "postgres-offsets"
+        - name: CONNECT_STATUS_STORAGE_TOPIC
+          value: "postgres-status"
+        - name: CONNECT_KEY_CONVERTER
+          value: io.confluent.connect.avro.AvroConverter
+        - name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR
+          value: "3"
+        - name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
+          value: "3"
+        - name: CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR
+          value: "3"
+        - name: CONNECT_VALUE_CONVERTER
+          value: io.confluent.connect.avro.AvroConverter
+        - name: CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL
+          value: schema-registry.kafka.svc.cluster.local
+        - name: CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL
+          value: schema-registy.kafka.svc.cluster.local
+        - name: CONNECT_INTERNAL_KEY_CONVERTER
+          value: org.apache.kafka.connect.json.JsonConverter
+        - name: CONNECT_INTERNAL_VALUE_CONVERTER
+          value: org.apache.kafka.connect.json.JsonConverter
+        - name: CONNECT_REST_ADVERTISED_HOST_NAME
+          value: localhost
+        - name: CONNECT_LOG4J_ROOT_LOGLEVEL
+          value: DEBUG
+        - name: CONNECT_LOG4J_LOGGERS
+          value: org.reflections=ERROR
+        - name: CONNECT_PLUGIN_PATH
+          value: /usr/share/java
+        - name: CONNECT_REST_HOST_NAME
+          value: localhost
+      - name: cloudsql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.11
+        command: ["/cloud_sql_proxy",
+                "-instances=erudite-marker-206315:us-central1:postgres=tcp:3306",
+                "-credential_file=/secrets/cloudsql/credentials.json",]
+        volumeMounts:
+        - name: cloudsql-instance-credentials
+          mountPath: /secrets/cloudsql
+          readOnly: true
+      volumes:
+      - name: cloudsql-instance-credentials
+        secret:
+          secretName: cloudsql-instance-credentials
+      - name: kafka-connect-storage
+        emptyDir: {}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: kafka-connect
+  namespace: kafka
+spec:
+  selector:
+    app: kafka-connect
+  ports:
+  - protocol: TCP
+    port: 8082
+    targetPort: 8082

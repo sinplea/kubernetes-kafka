@@ -1,0 +1,23 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-test
+  namespace: kafka
+  labels:
+    app: kafka-test
+spec:
+  selector:
+    matchLabels:
+      app: kafka-test
+  template:
+    metadata:
+      labels:
+        app: kafka-test
+    spec:
+      containers:
+      - name: kafka
+        image: confluentinc/cp-kafka:4.1.0
+        imagePullPolicy: Always
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]

@@ -1,3 +1,4 @@
+# This will deploy a Kafka Connect instance with a JDBC driver installed.
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -16,12 +17,16 @@ spec:
       labels:
         app: kafka-connect
     spec:
+      initContainers:
+      - name:
+        image: busybox
+        command: ["curl -X POST -H \"Content-Type: application/json\" --data \'{ "name": "jdbc-source", "config": { "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector", "tasks.max": 1, "connection.url": "jdbc:postgresql://127.0.0.1:3306/$DATABASE_NAME?user=$DATABASE_USER&password=$DATABASE_PASSWORD", "mode": "timestamp+incrementing", "incrementing.column.name": "id", "timestamp.column.name": "modified", "topic.prefix": "p-jdbc-", "poll.interval.ms": 1000 }}\'"]
       containers:
       - name: kafka-connect
         image: confluentinc/cp-kafka-connect:4.1.0
         imagePullPolicy: Always
         ports:
-        - containerPort: 8082
+        - containerPort: 8083
         volumeMounts:
         - name: kafka-connect-storage
           mountPath: /etc/kafka-connect/jars
@@ -31,10 +36,20 @@ spec:
               command: ["/bin/sh", "-c",
               "curl -O https://jdbc.postgresql.org/download/postgresql-42.2.2.jre6.jar && mv postgresql-42.2.2.jre6.jar /usr/share/java/kafka-connect-jdbc"]
         env:
+        - name: DATABASE_NAME
+          value: postgres
+        - name: DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: cloudsql-db-credentials
+              key: username
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cloudsql-db-credentials
+              key: password
         - name: CONNECT_BOOTSTRAP_SERVERS
           value: bootstrap:9092
-        - name: CONNECT_REST_PORT
-          value: "8082"
         - name: CONNECT_GROUP_ID
           value: "postgres"
         - name: CONNECT_CONFIG_STORAGE_TOPIC
@@ -43,34 +58,34 @@ spec:
           value: "postgres-offsets"
         - name: CONNECT_STATUS_STORAGE_TOPIC
           value: "postgres-status"
-        - name: CONNECT_KEY_CONVERTER
-          value: io.confluent.connect.avro.AvroConverter
         - name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR
           value: "3"
         - name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
           value: "3"
         - name: CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR
           value: "3"
+        - name: CONNECT_KEY_CONVERTER
+          value: io.confluent.connect.avro.AvroConverter
         - name: CONNECT_VALUE_CONVERTER
           value: io.confluent.connect.avro.AvroConverter
         - name: CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL
-          value: schema-registry.kafka.svc.cluster.local
+          value: http://cp-schema-registry.kafka.svc.cluster.local:8081
         - name: CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL
-          value: schema-registy.kafka.svc.cluster.local
+          value: http://cp-schema-registry.kafka.svc.cluster.local:8081
         - name: CONNECT_INTERNAL_KEY_CONVERTER
           value: org.apache.kafka.connect.json.JsonConverter
         - name: CONNECT_INTERNAL_VALUE_CONVERTER
           value: org.apache.kafka.connect.json.JsonConverter
-        - name: CONNECT_REST_ADVERTISED_HOST_NAME
-          value: localhost
         - name: CONNECT_LOG4J_ROOT_LOGLEVEL
           value: DEBUG
         - name: CONNECT_LOG4J_LOGGERS
           value: org.reflections=ERROR
         - name: CONNECT_PLUGIN_PATH
           value: /usr/share/java
-        - name: CONNECT_REST_HOST_NAME
-          value: localhost
+        - name: CONNECT_REST_ADVERTISED_HOST_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
       - name: cloudsql-proxy
         image: gcr.io/cloudsql-docker/gce-proxy:1.11
         command: ["/cloud_sql_proxy",
@@ -96,6 +111,5 @@ spec:
   selector:
     app: kafka-connect
   ports:
-  - protocol: TCP
-    port: 8082
-    targetPort: 8082
+  - port: 8083
+    targetPort: 8083

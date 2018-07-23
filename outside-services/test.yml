@@ -1,0 +1,10 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: outside-0-test
+  namespace: kafka
+spec:
+  selector:
+    app: kafka
+  ports:
+  - port: 32400

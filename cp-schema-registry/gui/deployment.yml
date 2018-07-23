@@ -1,0 +1,43 @@
+# Contains deployment and service for avro-schema-registry (https://github.com/salsify/avro-schema-registry)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schema-registry-ui
+  namespace: kafka
+  labels:
+    app: schema-registry-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schema-registry-ui
+  template:
+    metadata:
+      labels:
+        app: schema-registry-ui
+    spec:
+      containers:
+      - name: schema-registry-ui
+        image: landoop/schema-registry-ui
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        - name: SCHEMAREGISTRY_URL
+          value: http://$(CP_SCHEMA_REGISTRY_SERVICE_HOST):$(CP_SCHEMA_REGISTRY_SERVICE_PORT)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schema-registry-ui
+  namespace: kafka
+  labels:
+    app: schema-registry-ui
+spec:
+  ports:
+  - port: 8000
+    name: schema-registry-ui
+  selector:
+    app: schema-registry-ui
+---

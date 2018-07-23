@@ -48,6 +48,8 @@ spec:
           value: -Dlog4j.configuration=file:/etc/kafka/log4j.properties
         - name: JMX_PORT
           value: "5555"
+        - name: KAFKA_JMX_OPTS
+          value: -Dcom.sun.management.jmxremote.authenticate=false -Djava.security.properties=/etc/kafka/jvm.network.properties
         ports:
         - name: inside
           containerPort: 9092

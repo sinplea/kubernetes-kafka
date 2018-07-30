@@ -5,4 +5,4 @@ metadata:
 apiVersion: v1
 data:
   queries.sql: |-
-    -- KSQL queries 
+    

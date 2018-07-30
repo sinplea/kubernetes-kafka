@@ -64,6 +64,8 @@ spec:
           requests:
             cpu: 100m
             memory: 512Mi
+          limits:
+            memory: 1Gi
         readinessProbe:
           tcpSocket:
             port: 9092
@@ -87,4 +89,4 @@ spec:
       storageClassName: kafka-broker
       resources:
         requests:
-          storage: 200Gi
+          storage: 100Gi

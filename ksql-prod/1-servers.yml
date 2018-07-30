@@ -1,0 +1,60 @@
+# From https://docs.confluent.io/current/ksql/docs/capacity-planning.html
+
+# General hardware guidelines for a basic KSQL server are:
+
+# 4 cores
+# 32 GB RAM
+# 100 GB SSD
+# 1 Gbit network
+
+# Also it is reccommended that for production, you use your
+# ksql servers in headless mode; meaning there is no CLI 
+# attaching to the ksql cluster for people to access.
+
+# So devs should make sure their queries work on the dev cluster
+# with the the CLI and then place them in the queries.sql when
+# a dev knows it works and is ready for production.
+
+# In headless mode your servers will read from .sql file to run
+# queries. This file can be version controlled to be modified.
+
+# We can use a configmap to mount our queries.sql file
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-ksql
+  namespace: kafka
+spec:
+  selector:
+    matchLabels:
+      app: kafka-ksql
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: kafka-ksql
+    spec:
+      containers:
+      - name: kafka-ksql-server
+        image: confluentinc/cp-ksql-server:4.1.2
+        ports:
+        - containerPort: 8088
+        env:
+        - name: KSQL_BOOTSTRAP_SERVERS
+          value: bootstrap:9092
+        - name: KSQL_LISTENERS
+          value: http://0.0.0.0:8088
+        - name: KSQL_KSQL_SERVICE_ID
+          value: cluster_1
+        - name: KSQL_OPTS
+          value: -Dksql.schema.registry.url=http://cp-schema-registry:8081
+        - name: KSQL_KSQL_QUERIES_FILE
+          value: /etc/queries.sql
+        volumeMounts:
+        - name: configmap
+          mountPath: /etc/queries.sql
+      volumes:
+      - name: configmap
+        configMap:
+          name: kafka-ksql-config

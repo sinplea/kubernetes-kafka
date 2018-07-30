@@ -1,0 +1,9 @@
+kafka
+- 200GB hd
+- cpu: 100m (millicpu)
+- memory: 512M
+
+zookeeper
+- 1GB SSD
+- cpu: 10m 
+- memory: 4GB (limit)

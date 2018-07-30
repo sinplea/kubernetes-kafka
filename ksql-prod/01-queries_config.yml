@@ -1,0 +1,8 @@
+kind: ConfigMap
+metadata:
+  name: kafka-ksql-config
+  namespace: kafka
+apiVersion: v1
+data:
+  queries.sql: |-
+    -- KSQL queries 

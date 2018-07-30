@@ -16,8 +16,13 @@ We suggest you `apply -f` manifests in the following order:
  * [namespace](./00-namespace.yml)
  * [./zookeeper](./zookeeper/)
  * [./kafka](./kafka/)
+ * [./cp-schema-registry](./cp-schema-registry)
+ * [./rest-proxy](./rest-proxy)
+ * Anything else
 
 That'll give you client "bootstrap" `bootstrap.kafka.svc.cluster.local:9092`.
+
+Enter each director for more specific READMEs on each deployment.
 
 ## Fork
 

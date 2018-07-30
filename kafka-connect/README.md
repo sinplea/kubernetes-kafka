@@ -45,44 +45,44 @@ This service is exposed on port ```8083```
 
 ### Using Kafka Connect.
 
-This example will use the bash scripts found in ```kafka-connect/scripts/``` This example will go over how to use Kafka Connect with Postgres.
+Unfortunately, because Kafka Connect uses some container specific environment variables we are unable to run a script outside or inside (via telepresence.io) our cluster to make configuring our connectors a little less annoying.
 
-In the following examples, I will be using telepresence.io to access resources in my cluster. If you are not using telepresence, you can copy the curl commands from the bash scripts, change the dynamically configured parameters, exec into the Kafka Connect deploymenet via kubectl (```kubectl exec -it <kafka-connect-pod> -n kafka -- bash```) and run curl commands from there.
+All of the following curl requests will need to be ran inside of the kafka-connect cluster:
 
-The following commands will assume your are located in ```kafka-connect/scripts```
-
-> Curl commands to be copied will be marked in the code with a comment: # COPY_CURL
-
-#### Start telepresence
-
-```bash
-telepresence --run-shell
-...
-$yourcluster~
+```
+$ kubectl exec -it -n kafka <kafka-connect-pod> -- bash
 ```
 
 #### Adding a JDBC Source connector.
 
-```{.line-numbers}
-Name a task for your connector: my-cool-task
-Select an available connector class (JDBC): JDBC
-Select a mode (timestamp, incrementing, timestamp+incrementing): timestamp
-Enter a prefix for your Kafka topic: postgres- 
-
-Adding connector...
-```
-
-You can then check the status of the connector via ```check_connector_status.sh```
+To add a JDBC source connector
 
 ```
-$ bash check_connector_status.sh
-...
-Connector status: RUNNING
+curl -X POST -H "Content-Type: application/json" --data '{"name": "jdbc-test", "config": {"connector.class":  "io.confluent.connect.jdbc.JdbcSourceConnector", "tasks.max": 1, "connection.url": "jdbc:postgresql://127.0.0.1:3306/'$DATABASE_NAME'?user='$DATABASE_USER'&password='$DATABASE_PASSWORD'", "mode": "timestamp+incrementing", "incrementing.column.name": "id", "timestamp.column.name": "modified", "topic.prefix": "postgres-", "poll.interval.ms": 1000 }}' http://localhost:8083/connectors
 ```
+
+Some parameters to note:
+
+```name``` is the name of the connector instance. This name will be how you query other API endpoints to interact with this running process
+
+```mode``` is defines when messages will be written to the Kafka topic. (more info below)
+
+```incrementing.column.name``` represents a column in the database that is a unique number.
+
+```timestamp.column.name``` represents a column in the database that is a timestamp that is modified when a row is changed.
+
+```topic.prefix``` is the prefix to the Kafka topic where database data will be saved. From the above example the topic name will be prefixed with ```postgres-```
+
+#### Checking connector status
+
+You can then check the status of the connector via 
+
+> curl -X GET http://localhost:8082/connectors/jdbc-test/status
+
 
 If the task is running, then Kafka Connect is working properly and is now pulling tables from your database into kafka topics prefixed by the prefix given. That's it. You now have a topic that is being filled dynamically by updates to Postgres
 
-> Note: how the topic receives messages from Postgres is based on the selected mode. 
+> Notice how the topic receives messages from Postgres based on the selected mode. 
 
 ```timestamp``` will look for a column named ```modified``` in you database. Any time a record is updated and ```modified``` is changed. A message containing the record will be sent to the Kafka topic. Effectively you are watching for updates to your rows.
 
@@ -91,5 +91,3 @@ If the task is running, then Kafka Connect is working properly and is now pullin
 ```timestamp+incrementing``` is a combination of both updates and inserts.
 
 > There is no way to check for delete events with the vanilla JDBC connector. If you are able to use the Debezium connector, you can then check for deletion events; howerver, debezium is only available for on-prem databases or databases on AWS.
-
-

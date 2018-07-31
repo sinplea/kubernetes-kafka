@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: kafka-ksql-server
-        image: confluentinc/cp-ksql-server:4.1.2
+        image: confluentinc/cp-ksql-server:5.0.0
         ports:
         - containerPort: 8088
         env:
@@ -31,7 +31,7 @@ spec:
         - name: KSQL_OPTS
           value: -Dksql.schema.registry.url=http://cp-schema-registry:8081
       - name: kafka-ksql-cli
-        image: confluentinc/cp-ksql-cli:4.1.2
+        image: confluentinc/cp-ksql-cli:5.0.0
         ports:
         - containerPort: 8087
         env:

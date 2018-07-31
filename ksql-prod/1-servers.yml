@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
       - name: kafka-ksql-server
-        image: confluentinc/cp-ksql-server:4.1.2
+        image: confluentinc/cp-ksql-server:5.0.0
         ports:
         - containerPort: 8088
         env:

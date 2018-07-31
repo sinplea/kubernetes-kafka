@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: kafka-connect
-        image: confluentinc/cp-kafka-connect:4.1.0
+        image: confluentinc/cp-kafka-connect:5.0.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8083
